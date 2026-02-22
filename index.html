@@ -4,13 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CONSPAB - Ingeniería Civil</title>
-    <meta name="theme-color" content="#1e293b"> <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="CONSPAB">
+    <meta name="theme-color" content="#1e293b"> 
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="CONSPAB">
 
-<link rel="apple-touch-icon" href="https://via.placeholder.com/192/1e293b/ffffff?text=CP">
-<link rel="icon" href="https://via.placeholder.com/192/1e293b/ffffff?text=CP">
+    <link rel="apple-touch-icon" href="https://via.placeholder.com/192/1e293b/ffffff?text=CP">
+    <link rel="icon" href="https://via.placeholder.com/192/1e293b/ffffff?text=CP">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -18,7 +19,7 @@
     <style>
         :root { --primary: #1e293b; --accent: #f59e0b; --danger: #ef4444; --bg: #f1f5f9; --white: #ffffff; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding-bottom: 50px; }
-        .app-bar { background: var(--primary); color: white; padding: 25px; text-align: center; border-bottom: 6px solid var(--accent); }
+        .app-bar { background: var(--primary); color: white; padding: 25px; text-align: center; border-bottom: 6px solid var(--accent); position: relative; }
         .container { max-width: 850px; margin: 15px auto; padding: 0 10px; }
         
         .tabs { display: flex; background: #e2e8f0; border-radius: 12px; padding: 5px; margin-bottom: 20px; gap: 5px; }
@@ -44,17 +45,35 @@
         .total-box { text-align: right; padding: 15px; background: #f8fafc; border-radius: 10px; border: 1px solid #e2e8f0; }
         #loading { position: fixed; bottom: 20px; right: 20px; background: var(--primary); color: white; padding: 10px 20px; border-radius: 50px; font-size: 11px; display: none; z-index: 1000; }
         
-        /* Estilos específicos para el PDF */
         #pdf-render { display: none; }
         .pdf-header-table { width: 100%; margin-bottom: 20px; border-bottom: 2px solid #333; }
+
+        /* ESTILOS DE LOGIN */
+        #login-screen { position: fixed; inset: 0; background: var(--primary); display: flex; align-items: center; justify-content: center; z-index: 9999; }
+        .login-card { background: white; padding: 30px; border-radius: 20px; width: 90%; max-width: 350px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        .logout-btn { position: absolute; right: 10px; top: 25px; background: transparent; color: white; border: 1px solid rgba(255,255,255,0.3); padding: 5px 10px; border-radius: 8px; font-size: 9px; cursor: pointer; }
     </style>
 </head>
 <body>
 
+<div id="login-screen">
+    <div class="login-card">
+        <i class="fas fa-shield-halved fa-3x" style="color: var(--accent); margin-bottom: 15px;"></i>
+        <h2 style="color: var(--primary); margin-bottom: 20px;">Acceso CONSPAB</h2>
+        <label>Usuario</label>
+        <input type="text" id="user-input" placeholder="Usuario">
+        <label>Contraseña</label>
+        <input type="password" id="pass-input" placeholder="Contraseña">
+        <button class="btn btn-primary" onclick="validarAcceso()">INICIAR SESIÓN</button>
+        <p id="login-error" style="color: var(--danger); font-size: 11px; margin-top: 10px; display: none; font-weight: bold;">Acceso denegado</p>
+    </div>
+</div>
+
 <div id="loading"><i class="fas fa-sync fa-spin"></i> PROCESANDO...</div>
 
 <div class="app-bar">
-    <h1 style="font-size: 20px;">CONSPAB<span>.</span> CIVIL</h1>
+    <h1 style="font-size: 20px; margin: 0;">CONSPAB<span>.</span> CIVIL</h1>
+    <button class="logout-btn" onclick="cerrarSesion()"><i class="fas fa-sign-out-alt"></i> SALIR</button>
 </div>
 
 <div class="container">
@@ -187,10 +206,41 @@
 </div>
 
 <script>
+    // --- LÓGICA DE SEGURIDAD ---
+    const CREDENCIALES = {
+        usuario: "admin",       // MODIFICAR AQUÍ
+        pass: "conspab2024"     // MODIFICAR AQUÍ
+    };
+
+    function validarAcceso() {
+        const u = document.getElementById('user-input').value;
+        const p = document.getElementById('pass-input').value;
+        const err = document.getElementById('login-error');
+        if (u === CREDENCIALES.usuario && p === CREDENCIALES.pass) {
+            localStorage.setItem("conspab_auth", "true");
+            document.getElementById('login-screen').style.display = 'none';
+            inicializar();
+        } else {
+            err.style.display = 'block';
+            setTimeout(() => { err.style.display = 'none'; }, 2000);
+        }
+    }
+
+    function cerrarSesion() {
+        localStorage.removeItem("conspab_auth");
+        location.reload();
+    }
+
+    // --- LÓGICA ORIGINAL ---
     const URL_API = "https://script.google.com/macros/s/AKfycbwm_yYRriwoi1hkf-9wXoAQhm2kqXxqvcft46OKvz38VYBMGN1Dfo1Kx_M570gCx78G/exec"; 
     let db = []; let carrito = [];
 
-    window.onload = () => inicializar();
+    window.onload = () => {
+        if(localStorage.getItem("conspab_auth") === "true") {
+            document.getElementById('login-screen').style.display = 'none';
+            inicializar();
+        }
+    };
 
     async function inicializar() {
         showL(true);
@@ -262,7 +312,6 @@
             }
         });
 
-        // Configurar datos del PDF
         const hoy = new Date();
         const fechaStr = hoy.toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' });
         
@@ -326,7 +375,4 @@
     }
 </script>
 </body>
-
 </html>
-
-
